@@ -7,6 +7,7 @@ use Client\Entity\PersonGlobal;
 use Client\Entity\PersonTipee;
 use Client\Entity\Response\PersonCreate;
 use Client\Entity\Response\PersonUpdate;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class PersonService
@@ -87,13 +88,25 @@ class PersonService extends AbstractService
     /**
      * @param $totemId
      * @param $namespace
-     * @return PersonTipee
+     * @return bool|PersonTipee
      */
     public function getTotemData($totemId, $namespace)
     {
         $response = $this->get("users/$totemId/$namespace");
 
-        return $this->deserialize($response, PersonTipee::class);
+        if ($response) {
+            return $this->deserialize($response, PersonTipee::class);
+        }
+        return false;
     }
 
+    /**
+     * @param string $sessionId
+     * @return ResponseInterface
+     */
+    public function logout($sessionId = '')
+    {
+        $options = $this->serialize(['sess_id' => $sessionId]);
+        return $this->post('session/logout', $options);
+    }
 }

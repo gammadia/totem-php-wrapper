@@ -105,6 +105,34 @@ class PersonServiceTest extends TestCase
     }
 
     /**
+     * @test
+     */
+    public function logout_Success()
+    {
+        $httpClient = $this->prophesize(HttpClientInterface::class);
+        $httpClient->post('session/logout', [], [])
+                   ->shouldBeCalled()
+                   ->willReturn(new Response(401));
+
+        $personService = new PersonService($this->getSerializer(), $httpClient->reveal());
+        $personService->logout();
+
+        $namespace = 'tipee/testing';
+        $totemId = '0102030405060708090';
+
+        $httpClient = $this->prophesize(HttpClientInterface::class);
+        $httpClient->get("users/$totemId/$namespace", [])
+            ->shouldBeCalled()
+            ->willReturn(new Response(401));
+
+        /** @var HttpClientInterface $httpClient */
+        $personService = new PersonService($this->getSerializer(), $httpClient->reveal());
+        $personTipee = $personService->getTotemData($totemId, $namespace);
+        
+        $this->assertEquals(false, $personTipee);
+    }
+
+    /**
      * @return Person
      */
     protected function getPersonCreateRequest()
